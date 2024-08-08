@@ -94,7 +94,7 @@ const Folder = ({ folder, path, onFileDrop, onFolderSelect, selectedFolder }) =>
 
   const toggleOpen = (e) => {
     e.stopPropagation();
-    setIsOpen(!isOpen);
+    // setIsOpen(!isOpen);
     onFolderSelect(folder); // Set the selected folder when opened
   };
 
@@ -143,7 +143,11 @@ const Folder = ({ folder, path, onFileDrop, onFolderSelect, selectedFolder }) =>
           cursor: 'pointer'
         }}
       >
-        {isOpen ? <span>-</span> : <span>+</span>}
+        <span onClick={(e)=>{
+        e.stopPropagation();
+        setIsOpen(!isOpen);
+        }}
+        >{isOpen ? <span>-</span> : <span>+</span>}</span>
         <span style={{ marginLeft: '5px' }}>
           {folder.name}
         </span>
