@@ -75,9 +75,12 @@ const Folder = ({ folder, path, onFileDrop }) => {
 
   const handleDrop = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Stop event from propagating up the DOM tree
     const items = Array.from(e.dataTransfer.items);
     const parsedItems = await parseDataTransferItems(items);
-    onFileDrop(parsedItems, path.split('/').filter(part => part)); // Convert path to array of parts
+    const pathArray = path.split('/').filter(part => part);
+    console.log("pathArray----------->,",pathArray);
+    onFileDrop(parsedItems, pathArray); // Convert path to array of parts
   };
 
   const handleDragOver = (e) => {
@@ -140,4 +143,3 @@ const FileTree = ({ structure }) => {
 };
 
 export default FileTree;
-
