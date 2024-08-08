@@ -8,6 +8,7 @@ import { fileSystem } from './jsonData/sampleJsonData';
 function App() {
   // const [checkInspectOpen,setcheckInspectOpen] = useState(true);
   // // ---------to stop right click -------------
+  // Need to create a error screen like (you can not access govDrive when Inspect Element is open.)
   // useEffect(() => {
   //   const disableRightClick = (e) => {
   //     e.preventDefault();
