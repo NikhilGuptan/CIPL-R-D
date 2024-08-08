@@ -68,6 +68,7 @@ const File = ({ name }) => {
 // Folder component
 const Folder = ({ folder, path, onFileDrop }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   const toggleOpen = () => {
     setIsOpen(!isOpen);
@@ -80,24 +81,38 @@ const Folder = ({ folder, path, onFileDrop }) => {
     const parsedItems = await parseDataTransferItems(items);
     const pathArray = path.split('/').filter(part => part);
     setIsOpen(true); // Open the folder when an item is dropped into it
+    setIsDraggingOver(false); // Reset the dragging state
     onFileDrop(parsedItems, pathArray); // Convert path to array of parts
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation(); // Stop event from propagating up the DOM tree
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.stopPropagation();
+    setIsDraggingOver(false);
   };
 
   return (
     <div
       onDrop={handleDrop}
       onDragOver={handleDragOver}
-      style={{ marginLeft: '20px', border: '1px dashed lightgray', padding: '10px' }}
+      onDragLeave={handleDragLeave}
+      style={{
+        marginLeft: '20px',
+        border: isDraggingOver ? '2px solid blue' : '1px dashed lightgray',
+        padding: '10px',
+        backgroundColor: isDraggingOver ? 'lightblue' : 'transparent'
+      }}
     >
       <div onClick={toggleOpen} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-        <span style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
+        {/* <span style={{ transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
           ►
-        </span>
+        </span> */}
+        {isOpen ? <span>-</span>:<span>+</span>}
         <span style={{ marginLeft: '5px' }}>
           {folder.name}
         </span>
@@ -125,6 +140,7 @@ const Folder = ({ folder, path, onFileDrop }) => {
 // FileTree component
 const FileTree = ({ structure }) => {
   const [fileSystem, setFileSystem] = useState(structure);
+  console.log("fileSystem-----------.",fileSystem);
 
   const handleFileDrop = (items, pathParts) => {
     const newFileSystem = { ...fileSystem };
