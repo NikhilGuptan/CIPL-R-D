@@ -79,12 +79,13 @@ const Folder = ({ folder, path, onFileDrop }) => {
     const items = Array.from(e.dataTransfer.items);
     const parsedItems = await parseDataTransferItems(items);
     const pathArray = path.split('/').filter(part => part);
-    console.log("pathArray----------->,",pathArray);
+    setIsOpen(true); // Open the folder when an item is dropped into it
     onFileDrop(parsedItems, pathArray); // Convert path to array of parts
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Stop event from propagating up the DOM tree
   };
 
   return (
