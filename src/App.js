@@ -4,6 +4,7 @@ import FileTree from './components/fileSystem';
 import FileUpload from './components/fileUpload';
 import FolderUpload from './components/folderUpload';
 import { fileSystem } from './jsonData/sampleJsonData';
+import FileTreeWithRightside from './components/withRightSideFilesystem';
 
 function App() {
   // const [checkInspectOpen,setcheckInspectOpen] = useState(true);
@@ -44,7 +45,8 @@ function App() {
   return (
     <div> 
       {/* <FileUpload/> */}
-      <FileTree structure={fileSystem} />
+      {/* <FileTree structure={fileSystem} /> */}
+      <FileTreeWithRightside structure={fileSystem}/>
       {/* <FolderUpload/> */}
     </div>
   );
