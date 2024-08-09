@@ -33,7 +33,6 @@ const parseDataTransferItems = async (items) => {
         parsedItems.push({ name: file.name, isFolder: false, file });
       }
     } else {
-      // Handle the case where entry is null or undefined
       console.warn('Invalid entry:', entry);
     }
   }
@@ -75,9 +74,13 @@ const File = ({ name, onClick }) => {
 };
 
 // FolderContents component to display files on the right
-const FolderContents = ({ folder }) => {
+const FolderContents = ({ folder, onDrop }) => {
   return (
-    <div>
+    <div 
+      onDrop={onDrop}
+      onDragOver={(e) => e.preventDefault()}
+      style={{ minHeight: '500px' }}
+    >
       <h3>{folder.name}</h3>
       <div>
         {folder.children.map((item, index) =>
@@ -107,9 +110,7 @@ const Folder = ({ folder, path, onFileDrop, onFolderSelect, selectedFolder, open
 
     // Fetch folder contents if needed
     if (!isOpen) {
-      // Adjust the endpoint to match your API route
       const response = await axios.get('http://localhost:5000/api/filesystem');
-      // Update the folder with the fetched content
       setIsOpen(true);
     }
   };
@@ -122,7 +123,7 @@ const Folder = ({ folder, path, onFileDrop, onFolderSelect, selectedFolder, open
     const pathArray = path.split('/').filter(part => part);
     setIsOpen(true); // Open the folder when an item is dropped into it
     setIsDraggingOver(false); // Reset the dragging state
-    onFileDrop(parsedItems, pathArray); // Convert path to array of parts
+    onFileDrop(parsedItems, pathArray);
 
     // Upload files and folders to the server
     const formData = new FormData();
@@ -254,9 +255,35 @@ const FileTree = () => {
     setSelectedFile(null);
   };
 
+  const handleRightSideDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // Stop event from propagating up the DOM tree
+    if (selectedFolder) {
+      const items = Array.from(e.dataTransfer.items);
+      const parsedItems = await parseDataTransferItems(items);
+      const pathArray = [selectedFolder.name]; // Upload to selected folder
+
+      // Upload files and folders to the server
+      const formData = new FormData();
+      const flattenItems = (items) => items.flatMap(item => item.isFolder ? [item, ...flattenItems(item.children)] : [item]);
+
+      flattenItems(parsedItems).forEach(item => {
+        if (item.file) {
+          formData.append('files', item.file);
+        }
+      });
+
+      await axios.post('http://localhost:5000/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+
+      // Refresh file system
+      const response = await axios.get('http://localhost:5000/api/filesystem');
+      setFileSystem(response.data);
+    }
+  };
+
   return (
     <div style={{ display: 'flex' }}>
-      <div style={{ width: '30%', padding: '10px' }}>
+      <div style={{ width: '30%', borderRight: '1px solid lightgray' }}>
         {fileSystem && (
           <Folder
             folder={fileSystem}
@@ -268,41 +295,23 @@ const FileTree = () => {
           />
         )}
       </div>
-      <div style={{ width: '70%', padding: '10px' }}>
-        {selectedFolder && <FolderContents folder={selectedFolder} />}
+      <div
+        style={{ width: '70%', padding: '20px' }}
+        onDrop={handleRightSideDrop}
+        onDragOver={(e) => e.preventDefault()}
+      >
+        {selectedFolder ? (
+          <FolderContents folder={selectedFolder} onDrop={handleRightSideDrop} />
+        ) : (
+          <div>Select a folder to view its contents</div>
+        )}
       </div>
       {modalVisible && selectedFile && (
-        <div style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '80%',
-          height: '80%',
-          backgroundColor: '#fff',
-          borderRadius: '8px',
-          boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-          zIndex: 1000,
-        }}>
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', padding: '20px', backgroundColor: 'white', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
           <h2>{selectedFile.name}</h2>
-          <iframe
-            src={URL.createObjectURL(selectedFile.blob)}
-            style={{ width: '100%', height: '500px' }}
-            title="File Viewer"
-          />
+          <iframe src={URL.createObjectURL(selectedFile.blob)} style={{ width: '100%', height: '500px' }} />
           <button onClick={closeModal}>Close</button>
         </div>
-      )}
-      {modalVisible && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          zIndex: 999,
-        }} onClick={closeModal} />
       )}
     </div>
   );
