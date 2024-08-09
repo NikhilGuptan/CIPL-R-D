@@ -45,8 +45,8 @@ function App() {
   return (
     <div> 
       {/* <FileUpload/> */}
-      {/* <FileTree structure={fileSystem} /> */}
-      <FileTreeWithRightside structure={fileSystem}/>
+      <FileTree structure={fileSystem} />
+      {/* <FileTreeWithRightside structure={fileSystem}/> */}
       {/* <FolderUpload/> */}
     </div>
   );
