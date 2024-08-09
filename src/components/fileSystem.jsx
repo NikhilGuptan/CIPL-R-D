@@ -15,7 +15,7 @@ const addFilesToFolder = (items, folder, pathParts) => {
   });
 };
 
-// Utility to parse a DataTransferItem into a structured file/folder format
+// Utility to parse DataTransferItem into a structured file/folder format
 const parseDataTransferItems = async (items) => {
   const parsedItems = [];
 
@@ -75,7 +75,7 @@ const File = ({ name, onClick }) => {
 };
 
 // FolderContents component to display files on the right
-const FolderContents = ({ folder, openFileModal }) => {
+const FolderContents = ({ folder }) => {
   return (
     <div>
       <h3>{folder.name}</h3>
@@ -86,11 +86,7 @@ const FolderContents = ({ folder, openFileModal }) => {
               📁 {item.name}
             </div>
           ) : (
-            <div 
-              key={index} 
-              style={{ cursor: 'pointer' }} 
-              onClick={() => openFileModal(item.name)}
-            >
+            <div key={index}>
               📄 {item.name}
             </div>
           )
@@ -128,13 +124,16 @@ const Folder = ({ folder, path, onFileDrop, onFolderSelect, selectedFolder, open
     setIsDraggingOver(false); // Reset the dragging state
     onFileDrop(parsedItems, pathArray); // Convert path to array of parts
 
-    // Upload files to the server
+    // Upload files and folders to the server
     const formData = new FormData();
-    parsedItems.forEach(item => {
+    const flattenItems = (items) => items.flatMap(item => item.isFolder ? [item, ...flattenItems(item.children)] : [item]);
+
+    flattenItems(parsedItems).forEach(item => {
       if (item.file) {
         formData.append('files', item.file);
       }
     });
+
     await axios.post('http://localhost:5000/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   };
 
@@ -270,11 +269,7 @@ const FileTree = () => {
         )}
       </div>
       <div style={{ width: '70%', padding: '10px' }}>
-        {selectedFolder ? (
-          <FolderContents folder={selectedFolder} openFileModal={openFileModal} />
-        ) : (
-          <div>Select a folder to view its contents</div>
-        )}
+        {selectedFolder && <FolderContents folder={selectedFolder} />}
       </div>
       {modalVisible && selectedFile && (
         <div style={{
@@ -282,8 +277,9 @@ const FileTree = () => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          backgroundColor: 'white',
-          padding: '20px',
+          width: '80%',
+          height: '80%',
+          backgroundColor: '#fff',
           borderRadius: '8px',
           boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
           zIndex: 1000,
